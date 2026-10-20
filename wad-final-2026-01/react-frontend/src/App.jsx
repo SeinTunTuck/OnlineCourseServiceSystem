@@ -32,7 +32,10 @@ function Dashboard() {
       // the enrollment visible even while the background request is pending.
       setEnrolled((current) => current.some((item) => item._id === course._id) ? current : [{ ...course, enrollmentCount: course.enrollmentCount + 1 }, ...current]);
       setCourses((current) => current.map((item) => item._id === course._id ? { ...item, enrollmentCount: item.enrollmentCount + 1 } : item));
-      await load();
+      // The optimistic state above is already accurate. A transient refresh
+      // failure (for example while Vite reconnects) must not turn a completed
+      // enrollment into a misleading "Failed to fetch" message.
+      try { await load(); } catch { /* retry automatically on the next page load */ }
     } catch (err) { setNotice(err.message); }
   };
   const remove = async (course) => { if (!confirm(`Delete ${course.name}?`)) return; try { await request(`/course/${course._id}`, { method: "DELETE" }); setNotice("Course deleted."); load(); } catch (err) { setNotice(err.message); } };
