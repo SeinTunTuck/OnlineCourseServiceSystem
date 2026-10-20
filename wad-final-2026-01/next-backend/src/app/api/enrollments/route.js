@@ -1,7 +1,9 @@
 import { ObjectId } from "mongodb";
 import { getDb } from "@/lib/data";
 import { currentUser } from "@/lib/request";
-import { errorResponse, successResponse } from "@/lib/utils";
+import { errorResponse, optionsResponse, successResponse } from "@/lib/utils";
+
+export function OPTIONS() { return optionsResponse(); }
 export async function GET(request) {
   const session = currentUser(request); if (session.error) return session.error;
   if (session.user.role !== "student") return errorResponse("Only students have enrollments", 403);
