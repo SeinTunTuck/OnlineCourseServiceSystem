@@ -3,9 +3,16 @@ import { getClientPromise } from "./mongodb";
 import { localDb } from "./local-db";
 
 export const ROLES = { STUDENT: "student", TEACHER: "teacher" };
+let warnedAboutLocalStore = false;
 
 export async function getDb() {
-  if (!process.env.MONGODB_URI) return localDb;
+  if (!process.env.MONGODB_URI) {
+    if (!warnedAboutLocalStore) {
+      console.warn("MONGODB_URI is not loaded; using the local .data/course-management.json store.");
+      warnedAboutLocalStore = true;
+    }
+    return localDb;
+  }
   const client = await getClientPromise();
   return client.db(process.env.MONGODB_DB || "course_management");
 }
