@@ -7,6 +7,9 @@ let warnedAboutLocalStore = false;
 
 export async function getDb() {
   if (!process.env.MONGODB_URI) {
+    if (process.env.VERCEL) {
+      throw new Error("MONGODB_URI must be configured for a Vercel deployment");
+    }
     if (!warnedAboutLocalStore) {
       console.warn("MONGODB_URI is not loaded; using the local .data/course-management.json store.");
       warnedAboutLocalStore = true;

@@ -17,7 +17,14 @@ export async function POST(request) {
     if (!user || !(await bcrypt.compare(password, user.password))) return errorResponse("Invalid credentials", 401);
     const token = jwt.sign({ id: user._id.toString(), email: user.email, username: user.username, role: user.role }, process.env.JWT_SECRET || "course-management-development-secret", { expiresIn: "8h" });
     const response = successResponse({ user: publicUser(user) }, 200);
-    response.cookies.set("token", token, { httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production", path: "/", maxAge: 60 * 60 * 8 });
+    response.cookies.set("token", token, {
+      httpOnly: true,
+      // Frontend and API are separate Vercel origins in production.
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+      maxAge: 60 * 60 * 8,
+    });
     return response;
   } catch (error) {
     console.error("Login failed:", error);
