@@ -24,7 +24,17 @@ function Dashboard() {
   useEffect(() => { load().catch((err) => setNotice(err.message)); }, []);
   const create = async (course) => { await request("/course", { method: "POST", body: JSON.stringify(course) }); setCreating(false); setNotice("Course created."); load(); };
   const save = async (course) => { await request(`/course/${editing._id}`, { method: "PUT", body: JSON.stringify(course) }); setEditing(null); setNotice("Course updated."); load(); };
-  const enroll = async (course) => { try { await request(`/course/${course._id}/enroll`, { method: "POST" }); setNotice(`You are enrolled in ${course.name}.`); load(); } catch (err) { setNotice(err.message); } };
+  const enroll = async (course) => {
+    try {
+      await request(`/course/${course._id}/enroll`, { method: "POST" });
+      setNotice(`You are enrolled in ${course.name}.`);
+      // Update immediately, then refresh both lists from the API. This keeps
+      // the enrollment visible even while the background request is pending.
+      setEnrolled((current) => current.some((item) => item._id === course._id) ? current : [{ ...course, enrollmentCount: course.enrollmentCount + 1 }, ...current]);
+      setCourses((current) => current.map((item) => item._id === course._id ? { ...item, enrollmentCount: item.enrollmentCount + 1 } : item));
+      await load();
+    } catch (err) { setNotice(err.message); }
+  };
   const remove = async (course) => { if (!confirm(`Delete ${course.name}?`)) return; try { await request(`/course/${course._id}`, { method: "DELETE" }); setNotice("Course deleted."); load(); } catch (err) { setNotice(err.message); } };
   return <main className="shell"><header><div><p className="eyebrow">COURSE HUB</p><h1>{teacher ? "Teacher workspace" : "Find your next course"}</h1><p>{user.username} · {user.role}</p></div><button className="secondary" onClick={logout}>Sign out</button></header>{notice && <p className="notice">{notice}</p>}{teacher ? <><section className="toolbar"><div><h2>Your courses</h2><p>Create, update, and view enrollment for the courses you own.</p></div><button onClick={() => { setCreating(true); setEditing(null); }}>+ New course</button></section>{(creating || editing) && <section className="panel"><h2>{editing ? "Edit course" : "New course"}</h2><CourseForm value={editing && { ...editing, topics: editing.topics.join(", ") }} onSave={editing ? save : create} onCancel={() => { setCreating(false); setEditing(null); }} /></section>}<CourseList courses={courses} teacher onEdit={setEditing} onDelete={remove} /></> : <><section className="toolbar"><div><h2>Available courses</h2><p>Cancelled courses are hidden. Open courses can be enrolled in while seats remain.</p></div><input className="search" placeholder="Search course or teacher" value={search} onChange={(e) => { setSearch(e.target.value); load(e.target.value); }} /></section><CourseList courses={courses} onEnroll={enroll} enrolledIds={new Set(enrolled.map((course) => course._id))} /><section><h2>My enrollments</h2><CourseList courses={enrolled} enrolled /></section></>}</main>;
 }
