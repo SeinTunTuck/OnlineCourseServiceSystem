@@ -16,7 +16,9 @@ export async function POST(request) {
     const user = await db.collection("users").findOne({ $or: [{ email: identity.toLowerCase() }, { username: identity }] });
     if (!user || !(await bcrypt.compare(password, user.password))) return errorResponse("Invalid credentials", 401);
     const token = jwt.sign({ id: user._id.toString(), email: user.email, username: user.username, role: user.role }, process.env.JWT_SECRET || "course-management-development-secret", { expiresIn: "8h" });
-    const response = successResponse({ user: publicUser(user) }, 200);
+    // The response token is used by the separately deployed frontend as an
+    // Authorization fallback when browsers block cross-origin cookies.
+    const response = successResponse({ user: publicUser(user), token }, 200);
     response.cookies.set("token", token, {
       httpOnly: true,
       // Frontend and API are separate Vercel origins in production.

@@ -4,7 +4,8 @@ const JWT_SECRET = process.env.JWT_SECRET || "course-management-development-secr
 
 export function verifyJWT(req) {
   try {
-    const token = req.cookies.get("token")?.value;
+    const bearer = req.headers.get("authorization");
+    const token = req.cookies.get("token")?.value || (bearer?.startsWith("Bearer ") ? bearer.slice(7) : null);
 
     if (!token) {
       return null;
