@@ -8,10 +8,10 @@ import "./App.css";
 const initialForm = { name: "", duration: "1", topics: "", price: "0", maxStudent: "1", status: "open" };
 
 function Login() {
-  const { user, login } = useContext(UserContext); const navigate = useNavigate(); const [identity, setIdentity] = useState("ada.teacher@example.com"); const [password, setPassword] = useState("Pass123!"); const [error, setError] = useState("");
+  const { user, login } = useContext(UserContext); const navigate = useNavigate(); const [identity, setIdentity] = useState(""); const [password, setPassword] = useState(""); const [error, setError] = useState("");
   if (user) return <Navigate to="/" replace />;
   const submit = async (event) => { event.preventDefault(); setError(""); try { await login(identity, password); navigate("/"); } catch (err) { setError(err.message); } };
-  return <main className="login"><form onSubmit={submit} className="card"><p className="eyebrow">COURSE HUB</p><h1>Welcome back</h1><p>Sign in to manage or explore courses.</p><label>Email or username<input value={identity} onChange={(e) => setIdentity(e.target.value)} required /></label><label>Password<input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required /></label>{error && <p className="error">{error}</p>}<button>Sign in</button><small>Demo: any seeded email · Pass123!</small></form></main>;
+  return <main className="login"><form onSubmit={submit} className="card"><p className="eyebrow">COURSE HUB</p><h1>Welcome back</h1><p>Sign in to manage or explore courses.</p><label>Email or username<input value={identity} onChange={(e) => setIdentity(e.target.value)} required /></label><label>Password<input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required /></label>{error && <p className="error">{error}</p>}<button>Sign in</button></form></main>;
 }
 function CourseForm({ value, onSave, onCancel }) {
   const [form, setForm] = useState(value || initialForm); const [error, setError] = useState(""); const update = (key, val) => setForm({ ...form, [key]: val });
